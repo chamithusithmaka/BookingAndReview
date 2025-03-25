@@ -16,6 +16,7 @@ const BookingDetail = () => {
         const response = await axios.get(`http://localhost:5000/api/bookings/${id}`);
         setBooking(response.data.booking); // Extract the booking object from the response
         setLoading(false); // Stop loading
+        console.log(response.data.booking);s
       } catch (error) {
         console.error("Error fetching booking:", error);
         setLoading(false); // Stop loading even if there's an error
