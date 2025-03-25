@@ -82,28 +82,20 @@ export const editReview = async (req, res) => {
 // Delete an existing review
 export const deleteReview = async (req, res) => {
   try {
-    const review = await Review.findById(req.params.id);
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ message: "Review ID is required" });
+    }
+
+    const review = await Review.findByIdAndDelete(id);
     if (!review) {
       return res.status(404).json({ message: "Review not found" });
     }
 
-    // Check if the user is the owner of the review or an admin
-    if (!review.userId.equals(req.user._id) && !req.user.isAdmin) {
-      return res.status(403).json({ message: "Not authorized to delete this review" });
-    }
-
-    // Remove the review
-    const vehicle = await Vehicle.findById(review.vehicleId);
-    vehicle.totalRating -= review.rating;
-    vehicle.reviewCount -= 1;
-    vehicle.averageRating = vehicle.reviewCount > 0 ? vehicle.totalRating / vehicle.reviewCount : 0;
-    await vehicle.save();
-
-    await review.remove();
-
     res.status(200).json({ message: "Review deleted successfully" });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error("Error deleting review:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 

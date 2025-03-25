@@ -115,4 +115,15 @@ router.get("/vehicles", async (req, res) => {
   }
 });
 
+// Fetch notifications for a user
+// http://localhost:5000/api/booking/notifications/:userId
+router.get("/notifications/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const notifications = await Notification.find({ userId }).sort({ createdAt: -1 });
+    res.status(200).json({ success: true, notifications });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Failed to fetch notifications.", error: error.message });
+  }
+});
 export default router;
