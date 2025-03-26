@@ -3,18 +3,19 @@ import Vehicle from '../models/vehicle.model.js';
 // Create a new vehicle
 export const createVehicle = async (req, res) => {
     try {
-        const vehicleData = req.body;
+        const requiredFields = [
+            "vehicleName", "brand", "model", "year", "fuelType", "mileage",
+            "seating", "noOfDoors", "transmission", "ac", "pricePerDay",
+            "availability", "description", "image"
+        ];
 
-        // Validate required fields
-        if (!vehicleData.vehicleName || !vehicleData.brand || !vehicleData.model || !vehicleData.year || 
-            !vehicleData.fuelType || !vehicleData.mileage || !vehicleData.seating || 
-            !vehicleData.noOfDoors || !vehicleData.transmission || 
-            vehicleData.ac === undefined || !vehicleData.pricePerDay || 
-            vehicleData.availability === undefined || !vehicleData.description || !vehicleData.image) {
-            return res.status(400).json({ success: false, message: 'All fields are required!' });
+        // Check for missing fields
+        const missingFields = requiredFields.filter(field => req.body[field] === undefined);
+        if (missingFields.length > 0) {
+            return res.status(400).json({ success: false, message: `Missing fields: ${missingFields.join(", ")}` });
         }
 
-        const newVehicle = new Vehicle(vehicleData);
+        const newVehicle = new Vehicle(req.body);
         await newVehicle.save();
 
         res.status(201).json({ success: true, data: newVehicle });
@@ -23,7 +24,6 @@ export const createVehicle = async (req, res) => {
         res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
 };
-
 // Get all vehicles
 export const getAllVehicles = async (req, res) => {
     try {

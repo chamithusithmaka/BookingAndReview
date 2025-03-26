@@ -16,6 +16,9 @@ import NewRoutes from './routes/newRoutes.js';
 dotenv.config();
 
 const app = express(); // Initialize the app
+app.use(express.json({ limit: "50mb" })); // Increase JSON payload limit
+app.use(express.urlencoded({ limit: "50mb", extended: true })); // Increase URL-encoded payload limit
+
 
 app.use(cors()); // Enable CORS
 app.use(express.json()); // Parse JSON requests

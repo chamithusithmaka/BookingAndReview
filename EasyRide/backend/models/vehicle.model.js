@@ -17,6 +17,7 @@ const vehicleSchema = new mongoose.Schema({
     availability: { type: Boolean, default: true },
     description: { type: String, required: true },
     image: { type: String, required: true },
+    status: { type: String, enum: ["booked", "Available"], default: "Available" },
 }, { timestamps: true });
 
 const Vehicle = mongoose.model("Vehicle", vehicleSchema);

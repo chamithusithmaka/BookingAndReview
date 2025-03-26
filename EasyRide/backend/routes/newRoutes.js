@@ -11,9 +11,28 @@ const router = express.Router();
 //create booking 
 router.post("/createBooking", async (req, res) => {
   try {
-    const booking = await Booking.create(req.body);
+    const { vehicleId, ...bookingData } = req.body;
+
+    // Create the booking
+    const booking = await Booking.create({ ...bookingData, vehicleId });
+
+    // Update the vehicle's status to "booked"
+    const vehicle = await Vehicle.findById(vehicleId);
+    if (!vehicle) {
+      return res.status(404).json({ message: "Vehicle not found." });
+    }
+
+    if (!vehicle.availability) {
+      return res.status(400).json({ message: "Vehicle is already booked." });
+    }
+
+    vehicle.status = "booked";
+    vehicle.availability = false;
+    await vehicle.save();
+
     res.status(201).json({ message: "Booking created successfully.", booking });
   } catch (error) {
+    console.error("Error creating booking:", error.message);
     res.status(500).json({ message: "Failed to create booking.", error: error.message });
   }
 });
@@ -124,6 +143,66 @@ router.get("/notifications/:userId", async (req, res) => {
     res.status(200).json({ success: true, notifications });
   } catch (error) {
     res.status(500).json({ success: false, message: "Failed to fetch notifications.", error: error.message });
+  }
+});
+
+// Update a review
+// http://localhost:5000/api/booking/reviews/:id
+router.put("/reviews/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rating, reviewText } = req.body;
+
+    // Find and update the review
+    const updatedReview = await Review.findByIdAndUpdate(
+      id,
+      { rating, reviewText },
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedReview) {
+      return res.status(404).json({ message: "Review not found." });
+    }
+
+    res.status(200).json({ message: "Review updated successfully.", updatedReview });
+  } catch (error) {
+    console.error("Error updating review:", error);
+    res.status(500).json({ message: "Failed to update review.", error: error.message });
+  }
+});
+
+
+// Route to cancel a booking
+// http://localhost:5000/api/booking/cancel/:bookingId
+router.put("/cancel/:bookingId", async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const { cancellationReason } = req.body;
+
+    // Find the booking by ID
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found." });
+    }
+
+    // Update the booking's status, cancellation reason, and cancellation timestamp
+    booking.status = "canceled";
+    booking.cancellationReason = cancellationReason;
+    booking.canceledAt = new Date();
+    await booking.save();
+
+    // Update the associated vehicle's status to "Available" and set availability to true
+    const vehicle = await Vehicle.findById(booking.vehicleId);
+    if (vehicle) {
+      vehicle.status = "Available";
+      vehicle.availability = true;
+      await vehicle.save();
+    }
+
+    res.status(200).json({ message: "Booking canceled successfully.", booking });
+  } catch (error) {
+    console.error("Error canceling booking:", error.message);
+    res.status(500).json({ message: "Failed to cancel booking.", error: error.message });
   }
 });
 export default router;

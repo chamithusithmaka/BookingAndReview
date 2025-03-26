@@ -1,63 +1,100 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom"; // Import useNavigate for navigation
+import Header from "./Header"; // Import the Header component
 
-const Vehicle = () => {
-  const [vehicles, setVehicles] = useState([]); // Initialize as an empty array
+const Vehicles = () => {
+  const [vehicles, setVehicles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const navigate = useNavigate(); // Initialize navigate for routing
 
-  // Fetch all vehicles
+  // Fetch vehicles from the API
   useEffect(() => {
     const fetchVehicles = async () => {
       try {
         const response = await axios.get("http://localhost:5000/api/vehicles");
-        console.log("API Response:", response.data); // Debug the API response
-        setVehicles(response.data.data || []); // Use response.data.data if the API wraps the array in a "data" property
+        setVehicles(response.data.data || []);
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching vehicles:", error);
+        setError("Failed to load vehicles. Please try again later.");
+        setLoading(false);
       }
     };
 
     fetchVehicles();
   }, []);
 
-  const handleViewVehicle = (vehicleId) => {
-    alert(`View details for vehicle ID: ${vehicleId}`);
-    // You can navigate to a detailed vehicle page here using React Router
-    // Example: navigate(`/vehicle/${vehicleId}`);
+  if (loading) {
+    return <p className="text-center mt-5">Loading vehicles...</p>;
+  }
+
+  if (error) {
+    return <p className="text-center text-danger mt-5">{error}</p>;
+  }
+
+  if (vehicles.length === 0) {
+    return <p className="text-center mt-5">No vehicles available.</p>;
+  }
+
+  const handleBooking = (vehicleId) => {
+    // Navigate to the booking page with the vehicle ID
+    navigate(`/bookings/${vehicleId}`);
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold text-center mb-8">Available Vehicles</h1>
-      {vehicles.length === 0 ? (
-        <p className="text-center text-gray-600">No vehicles available.</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    <div>
+      <Header />
+      <div className="container py-5">
+        <h1 className="text-center mb-4">Available Vehicles</h1>
+        <div className="row g-4">
           {vehicles.map((vehicle) => (
-            <div
-              key={vehicle._id}
-              className="border border-gray-300 rounded-lg shadow-lg bg-white p-4"
-            >
-              <img
-                src={vehicle.image}
-                alt={vehicle.vehicleName}
-                className="w-full h-40 object-cover rounded-lg mb-4"
-              />
-              <h2 className="text-lg font-semibold mb-2">{vehicle.vehicleName}</h2>
-              <p className="text-gray-600"><strong>Brand:</strong> {vehicle.brand}</p>
-              <p className="text-gray-600"><strong>Price:</strong> ${vehicle.pricePerDay} / day</p>
-              <p className="text-gray-600"><strong>Type:</strong> {vehicle.vehicleType}</p>
-              <button
-                onClick={() => handleViewVehicle(vehicle._id)}
-                className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-              >
-                View
-              </button>
+            <div key={vehicle._id} className="col-12 col-sm-6 col-md-4 col-lg-3">
+              <div className="card h-100">
+                <img
+                  src={vehicle.image}
+                  className="card-img-top"
+                  alt={vehicle.vehicleName}
+                  style={{ height: "200px", objectFit: "cover" }}
+                />
+                <div className="card-body">
+                  <h5 className="card-title">{vehicle.vehicleName}</h5>
+                  <p className="card-text">
+                    <strong>Brand:</strong> {vehicle.brand}
+                  </p>
+                  <p className="card-text">
+                    <strong>Type:</strong> {vehicle.vehicleType}
+                  </p>
+                  <p className="card-text">
+                    <strong>Price/Day:</strong> ${vehicle.pricePerDay}
+                  </p>
+                  <p className="card-text">
+                    <strong>Status:</strong>{" "}
+                    <span
+                      className={`badge ${
+                        vehicle.availability ? "bg-success" : "bg-danger"
+                      }`}
+                    >
+                      {vehicle.availability ? "Available" : "Booked"}
+                    </span>
+                  </p>
+                  {vehicle.availability && (
+                    <button
+                      className="btn btn-primary mt-3"
+                      onClick={() => handleBooking(vehicle._id)}
+                    >
+                      Book Now
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           ))}
         </div>
-      )}
+      </div>
     </div>
   );
 };
 
-export default Vehicle;
+export default Vehicles;

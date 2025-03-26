@@ -9,6 +9,8 @@ const BookingDetail = () => {
   const [booking, setBooking] = useState(null); // Initialize booking as null
   const [loading, setLoading] = useState(true); // Loading state
   const [hasReview, setHasReview] = useState(false); // State to track if the user has already submitted a review
+  const [showCancelPopup, setShowCancelPopup] = useState(false); // State to show/hide the cancel popup
+  const [cancellationReason, setCancellationReason] = useState(""); // State to store the cancellation reason
 
   // Fetch booking by ID
   useEffect(() => {
@@ -27,6 +29,22 @@ const BookingDetail = () => {
 
     fetchBooking();
   }, [id]);
+
+  // Handle cancel booking
+  const handleCancelBooking = async () => {
+    try {
+      const response = await axios.put(`http://localhost:5000/api/bookings/cancel/${id}`, {
+        cancellationReason,
+      });
+      setBooking(response.data.booking); // Update the booking state with the canceled booking
+      setShowCancelPopup(false); // Close the popup
+      setCancellationReason(""); // Reset the cancellation reason
+      alert("Booking canceled successfully.");
+    } catch (error) {
+      console.error("Error canceling booking:", error);
+      alert("Failed to cancel booking. Please try again.");
+    }
+  };
 
   if (loading) {
     return <p className="text-center text-muted">Loading booking details...</p>;
@@ -68,6 +86,14 @@ const BookingDetail = () => {
               <p className="card-text">
                 <strong>Additional Notes:</strong> {booking.additional_notes}
               </p>
+              {booking.status === "pending" && (
+                <button
+                  className="btn btn-danger mt-3"
+                  onClick={() => setShowCancelPopup(true)}
+                >
+                  Cancel Booking
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -122,6 +148,28 @@ const BookingDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* Cancel Booking Popup */}
+      {showCancelPopup && (
+        <div className="popup-overlay">
+          <div className="popup">
+            <h3 className="popup-title">Cancel Booking</h3>
+            <textarea
+              className="form-control mb-3"
+              placeholder="Enter cancellation reason"
+              value={cancellationReason}
+              onChange={(e) => setCancellationReason(e.target.value)}
+              rows="3"
+            ></textarea>
+            <button className="btn btn-danger me-2" onClick={handleCancelBooking}>
+              Confirm Cancel
+            </button>
+            <button className="btn btn-secondary" onClick={() => setShowCancelPopup(false)}>
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
