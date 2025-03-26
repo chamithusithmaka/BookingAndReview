@@ -10,6 +10,7 @@ import BookingDetail from './components/Bookings/BookingDetails';
 import AdminBookings from './components/Admin/AdminBookings';
 import Vehicles from './components/vehicles/vehicles';
 import BookingForm from './components/Bookings/CreateBooking';
+import SpecificBooking from "./components/Admin/specificBooking";
 function App() {
   const [count, setCount] = useState(0)
 
@@ -22,6 +23,7 @@ function App() {
       <Route path="/booking/:id" element={<BookingDetail />} />
      <Route path="/vehicles" element={<Vehicles />} />
      <Route path="/bookings/:vehicleId" element={<BookingForm />} />
+     <Route path="/admin/bookings/:id" element={<SpecificBooking />} />
     </Routes>
   </Router>
    

@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import VehicleReview from "../reviews/VehicleReview"; // Import the VehicleReview component
 
 const BookingForm = () => {
   const { vehicleId } = useParams(); // Get the vehicle ID from the URL
@@ -38,22 +39,21 @@ const BookingForm = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-   // Validate name field (only letters and spaces allowed)
-  if (name === "name") {
-    const regex = /^[a-zA-Z\s]*$/; // Allow only letters and spaces
-    if (!regex.test(value)) {
-      return; // Prevent invalid characters from being entered
+    // Validate name field (only letters and spaces allowed)
+    if (name === "name") {
+      const regex = /^[a-zA-Z\s]*$/; // Allow only letters and spaces
+      if (!regex.test(value)) {
+        return; // Prevent invalid characters from being entered
+      }
     }
-  }
 
-  
-  // Validate phone_number field (only digits, max 10 characters)
-  if (name === "phone_number") {
-    const regex = /^[0-9]*$/; // Allow only digits
-    if (!regex.test(value) || value.length > 10) {
-      return; // Prevent invalid characters or more than 10 digits
+    // Validate phone_number field (only digits, max 10 characters)
+    if (name === "phone_number") {
+      const regex = /^[0-9]*$/; // Allow only digits
+      if (!regex.test(value) || value.length > 10) {
+        return; // Prevent invalid characters or more than 10 digits
+      }
     }
-  }
 
     setFormData({ ...formData, [name]: value });
   };
@@ -267,6 +267,11 @@ const BookingForm = () => {
             </button>
           </form>
         </div>
+      </div>
+
+      {/* Vehicle Reviews */}
+      <div className="mt-5">
+        <VehicleReview vehicleId={vehicleId} />
       </div>
     </div>
   );

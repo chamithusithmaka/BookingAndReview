@@ -16,6 +16,7 @@ const Vehicles = () => {
         const response = await axios.get("http://localhost:5000/api/vehicles");
         setVehicles(response.data.data || []);
         setLoading(false);
+        console.log("Vehicles:", response.data.data);
       } catch (error) {
         console.error("Error fetching vehicles:", error);
         setError("Failed to load vehicles. Please try again later.");

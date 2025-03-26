@@ -205,4 +205,139 @@ router.put("/cancel/:bookingId", async (req, res) => {
     res.status(500).json({ message: "Failed to cancel booking.", error: error.message });
   }
 });
+
+//http://localhost:5000/api/booking/vehicle/:vehicleId
+// Route to fetch reviews by vehicleId
+router.get("/vehicle/:vehicleId", async (req, res) => {
+  try {
+    const { vehicleId } = req.params;
+
+    // Find reviews by vehicleId
+    const reviews = await Review.find({ vehicleId });
+
+    if (!reviews || reviews.length === 0) {
+      return res.status(404).json({ message: "No reviews found for this vehicle." });
+    }
+
+    res.status(200).json({ success: true, reviews });
+  } catch (error) {
+    console.error("Error fetching reviews:", error.message);
+    res.status(500).json({ success: false, message: "Failed to fetch reviews.", error: error.message });
+  }
+});
+
+//http://localhost:5000/api/booking/update/:bookingId
+// Route to update a booking
+router.put("/update/:bookingId", async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const { name, pick_up_date, return_date, phone_number } = req.body;
+
+    // Find the booking by ID
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found." });
+    }
+
+    // Update fields if provided
+    if (name) booking.name = name;
+    if (pick_up_date) booking.pick_up_date = new Date(pick_up_date);
+    if (return_date) booking.return_date = new Date(return_date);
+    if (phone_number) booking.phone_number = phone_number;
+
+    // Recalculate no_of_dates and total_price if dates are updated
+    if (pick_up_date || return_date) {
+      const pickUpDate = new Date(booking.pick_up_date);
+      const returnDate = new Date(booking.return_date);
+
+      if (returnDate <= pickUpDate) {
+        return res.status(400).json({ message: "Return date must be after pick-up date." });
+      }
+
+      const no_of_dates = Math.ceil((returnDate - pickUpDate) / (1000 * 60 * 60 * 24));
+      booking.no_of_dates = no_of_dates;
+
+      // Fetch the vehicle to get the price per day
+      const vehicle = await Vehicle.findById(booking.vehicleId);
+      if (!vehicle) {
+        return res.status(404).json({ message: "Associated vehicle not found." });
+      }
+
+      booking.total_price = no_of_dates * vehicle.pricePerDay;
+    }
+
+    // Save the updated booking
+    await booking.save();
+
+    res.status(200).json({ message: "Booking updated successfully.", booking });
+  } catch (error) {
+    console.error("Error updating booking:", error.message);
+    res.status(500).json({ message: "Failed to update booking.", error: error.message });
+  }
+});
+
+// http://localhost:5000/api/booking/complete/:bookingId
+// Route to update booking status to "completed"
+router.put("/complete/:bookingId", async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+
+    // Find the booking by ID
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found." });
+    }
+
+    // Check if the booking is already completed
+    if (booking.status === "completed") {
+      return res.status(400).json({ message: "Booking is already completed." });
+    }
+
+    // Update the booking status to "completed"
+    booking.status = "completed";
+    await booking.save();
+
+    // Find the associated vehicle by vehicleId
+    const vehicle = await Vehicle.findById(booking.vehicleId);
+    if (!vehicle) {
+      return res.status(404).json({ message: "Associated vehicle not found." });
+    }
+
+    // Update the vehicle status to "Available"
+    vehicle.status = "Available";
+    vehicle.availability = true;
+    await vehicle.save();
+
+    res.status(200).json({
+      message: "Booking marked as completed successfully, and vehicle status updated to Available.",
+      booking,
+      vehicle,
+    });
+  } catch (error) {
+    console.error("Error updating booking status:", error.message);
+    res.status(500).json({ message: "Failed to update booking status.", error: error.message });
+  }
+});
+
+//http://localhost:5000/api/booking/delete/:bookingId
+// Route to delete a booking
+router.delete("/delete/:bookingId", async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+
+    // Find and delete the booking by ID
+    const booking = await Booking.findByIdAndDelete(bookingId);
+
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found." });
+    }
+
+    res.status(200).json({ message: "Booking deleted successfully.", booking });
+  } catch (error) {
+    console.error("Error deleting booking:", error.message);
+    res.status(500).json({ message: "Failed to delete booking.", error: error.message });
+  }
+});
+
+
 export default router;

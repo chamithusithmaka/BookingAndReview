@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import MyReviews from "../reviews/MyReviews";
-import ReviewForm from "../reviews/ReviewForm"; // Import the ReviewForm component
+import ReviewForm from "../reviews/ReviewForm";
+import UpdateBookingForm from "./UpdateBookingForm"; // Import the UpdateBookingForm component
 
 const BookingDetail = () => {
   const { id } = useParams(); // Get booking ID from the URL
@@ -10,6 +11,7 @@ const BookingDetail = () => {
   const [loading, setLoading] = useState(true); // Loading state
   const [hasReview, setHasReview] = useState(false); // State to track if the user has already submitted a review
   const [showCancelPopup, setShowCancelPopup] = useState(false); // State to show/hide the cancel popup
+  const [showUpdatePopup, setShowUpdatePopup] = useState(false); // State to show/hide the update popup
   const [cancellationReason, setCancellationReason] = useState(""); // State to store the cancellation reason
 
   // Fetch booking by ID
@@ -33,7 +35,7 @@ const BookingDetail = () => {
   // Handle cancel booking
   const handleCancelBooking = async () => {
     try {
-      const response = await axios.put(`http://localhost:5000/api/bookings/cancel/${id}`, {
+      const response = await axios.put(`http://localhost:5000/api/booking/cancel/${id}`, {
         cancellationReason,
       });
       setBooking(response.data.booking); // Update the booking state with the canceled booking
@@ -87,12 +89,20 @@ const BookingDetail = () => {
                 <strong>Additional Notes:</strong> {booking.additional_notes}
               </p>
               {booking.status === "pending" && (
-                <button
-                  className="btn btn-danger mt-3"
-                  onClick={() => setShowCancelPopup(true)}
-                >
-                  Cancel Booking
-                </button>
+                <>
+                  <button
+                    className="btn btn-danger mt-3 me-2"
+                    onClick={() => setShowCancelPopup(true)}
+                  >
+                    Cancel Booking
+                  </button>
+                  <button
+                    className="btn btn-primary mt-3"
+                    onClick={() => setShowUpdatePopup(true)}
+                  >
+                    Update Booking
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -167,6 +177,20 @@ const BookingDetail = () => {
             <button className="btn btn-secondary" onClick={() => setShowCancelPopup(false)}>
               Close
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Update Booking Popup */}
+      {showUpdatePopup && (
+        <div className="popup-overlay">
+          <div className="popup">
+            <h3 className="popup-title">Update Booking</h3>
+            <UpdateBookingForm
+              booking={booking}
+              onClose={() => setShowUpdatePopup(false)}
+              onUpdate={(updatedBooking) => setBooking(updatedBooking)}
+            />
           </div>
         </div>
       )}
