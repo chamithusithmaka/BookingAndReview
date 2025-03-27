@@ -53,6 +53,18 @@ const AdminSidebar = () => {
             Reviews
           </Link>
         </li>
+
+        <li className="nav-item mb-3">
+          <Link
+            to="/admin/report"
+            className={`nav-link d-flex align-items-center text-white ${
+              location.pathname === "/admin/report" ? "active bg-secondary" : ""
+            }`}
+          >
+            <FaCar className="me-2" />
+            Booking Report 
+          </Link>
+        </li>
       </ul>
     </div>
   );
