@@ -1,0 +1,41 @@
+.banner-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 400px;
+    background: url('https://example.com/your-banner-image.jpg') no-repeat center center/cover; /* Add suitable background image */
+    color: white;
+    text-align: center;
+  }
+  
+  .banner-content {
+    background-color: rgba(0, 0, 0, 0.5); /* Dark transparent background for text contrast */
+    padding: 30px;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 600px;
+  }
+  
+  .banner-title {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+  }
+  
+  .banner-description {
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+  }
+  
+  .btn-primary {
+    background-color: #FFEB3B;
+    color: black;
+    font-size: 1.2rem;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .btn-primary:hover {
+    background-color: #F4C300;
+  }
+  

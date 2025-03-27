@@ -22,7 +22,7 @@ router.get('/', getAllVehicles);
 
 router.get('/search', searchVehicles);
 
-
+// http://localhost:5000/api/vehicles/:id
 router.get('/:id', getVehicleById);
 
 

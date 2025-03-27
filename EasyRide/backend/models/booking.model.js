@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const bookingSchema = new mongoose.Schema({
-    vehicleId: { type: String, required: true },
+    vehicleId: { type: mongoose.Schema.Types.ObjectId, ref: "Vehicle", required: true }, // Reference to Vehicle model
     userId: { type: String, required: true },
     name: { type: String, required: true },
     pick_up_date: { type: Date, required: true },

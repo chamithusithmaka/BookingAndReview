@@ -80,14 +80,23 @@ const Vehicles = () => {
                       {vehicle.availability ? "Available" : "Booked"}
                     </span>
                   </p>
-                  {vehicle.availability && (
-                    <button
-                      className="btn btn-primary mt-3"
-                      onClick={() => handleBooking(vehicle._id)}
-                    >
-                      Book Now
-                    </button>
-                  )}
+                  <div className="d-flex gap-2 mt-3">
+  <button
+    className="btn btn-outline-primary"
+    onClick={() => navigate(`/vehicles/${vehicle._id}`)}
+  >
+    View Details
+  </button>
+  {vehicle.availability && (
+    <button
+      className="btn btn-primary"
+      onClick={() => handleBooking(vehicle._id)}
+    >
+      Book Now
+    </button>
+  )}
+</div>
+
                 </div>
               </div>
             </div>

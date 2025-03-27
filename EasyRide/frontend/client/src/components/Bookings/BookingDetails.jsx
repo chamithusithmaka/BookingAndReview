@@ -1,35 +1,60 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import MyReviews from "../reviews/MyReviews";
 import ReviewForm from "../reviews/ReviewForm";
-import UpdateBookingForm from "./UpdateBookingForm"; // Import the UpdateBookingForm component
+import UpdateBookingForm from "./UpdateBookingForm";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { 
+  faCar, 
+  faGasPump, 
+  faUsers, 
+  faCogs, 
+  faCalendarAlt, 
+  faTags,
+  faUser,
+  faMoneyBillWave,
+  faStickyNote,
+  faEdit,
+  faBan,
+  faCheckCircle,
+  faSpinner,
+  faExclamationCircle
+} from "@fortawesome/free-solid-svg-icons";
 
 const BookingDetail = () => {
-  const { id } = useParams(); // Get booking ID from the URL
-  const [booking, setBooking] = useState(null); // Initialize booking as null
-  const [loading, setLoading] = useState(true); // Loading state
-  const [hasReview, setHasReview] = useState(false); // State to track if the user has already submitted a review
-  const [showCancelPopup, setShowCancelPopup] = useState(false); // State to show/hide the cancel popup
-  const [showUpdatePopup, setShowUpdatePopup] = useState(false); // State to show/hide the update popup
-  const [cancellationReason, setCancellationReason] = useState(""); // State to store the cancellation reason
+  const { id } = useParams();
+  const [booking, setBooking] = useState(null);
+  const [vehicle, setVehicle] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [hasReview, setHasReview] = useState(false);
+  const [showCancelPopup, setShowCancelPopup] = useState(false);
+  const [showUpdatePopup, setShowUpdatePopup] = useState(false);
+  const [cancellationReason, setCancellationReason] = useState("");
 
-  // Fetch booking by ID
+  // Fetch booking and vehicle details
   useEffect(() => {
-    const fetchBooking = async () => {
+    const fetchBookingAndVehicle = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/bookings/${id}`);
-        setBooking(response.data.booking); // Extract the booking object from the response
-        setHasReview(response.data.booking.hasReview); // Check if the booking already has a review
-        setLoading(false); // Stop loading
-        console.log(response.data.booking);
+        // Fetch booking details
+        const bookingResponse = await axios.get(`http://localhost:5000/api/bookings/${id}`);
+        const bookingData = bookingResponse.data.booking;
+        setBooking(bookingData);
+        console.log("Booking Details:", bookingData);
+
+        // Fetch vehicle details using vehicleId from the booking
+        const vehicleResponse = await axios.get(`http://localhost:5000/api/booking/vehicle-details/${id}`);
+        setVehicle(vehicleResponse.data.vehicle);
+        console.log("Vehicle Details:", vehicleResponse.data.vehicle);
+
+        setLoading(false);
       } catch (error) {
-        console.error("Error fetching booking:", error);
-        setLoading(false); // Stop loading even if there's an error
+        console.error("Error fetching booking or vehicle details:", error);
+        setLoading(false);
       }
     };
 
-    fetchBooking();
+    fetchBookingAndVehicle();
   }, [id]);
 
   // Handle cancel booking
@@ -38,9 +63,9 @@ const BookingDetail = () => {
       const response = await axios.put(`http://localhost:5000/api/booking/cancel/${id}`, {
         cancellationReason,
       });
-      setBooking(response.data.booking); // Update the booking state with the canceled booking
-      setShowCancelPopup(false); // Close the popup
-      setCancellationReason(""); // Reset the cancellation reason
+      setBooking(response.data.booking);
+      setShowCancelPopup(false);
+      setCancellationReason("");
       alert("Booking canceled successfully.");
     } catch (error) {
       console.error("Error canceling booking:", error);
@@ -48,111 +73,281 @@ const BookingDetail = () => {
     }
   };
 
+  // Get status badge color and icon
+  const getStatusDetails = (status) => {
+    switch(status) {
+      case "completed":
+        return { color: "success", icon: faCheckCircle, text: "Completed" };
+      case "pending":
+        return { color: "warning", icon: faCalendarAlt, text: "Pending" };
+      case "canceled":
+        return { color: "danger", icon: faBan, text: "Canceled" };
+      default:
+        return { color: "secondary", icon: faCalendarAlt, text: status };
+    }
+  };
+
   if (loading) {
-    return <p className="text-center text-muted">Loading booking details...</p>;
+    return (
+      <div className="d-flex flex-column justify-content-center align-items-center py-5 min-vh-100">
+        <FontAwesomeIcon icon={faSpinner} spin size="3x" className="text-primary mb-3" />
+        <p className="text-muted">Loading booking and vehicle details...</p>
+      </div>
+    );
   }
 
-  if (!booking) {
-    return <p className="text-center text-danger">Booking not found.</p>;
+  if (!booking || !vehicle) {
+    return (
+      <div className="d-flex flex-column justify-content-center align-items-center py-5 min-vh-100">
+        <FontAwesomeIcon icon={faExclamationCircle} size="3x" className="text-danger mb-3" />
+        <p className="text-danger">Booking or vehicle details not found.</p>
+        <Link to="/bookings" className="btn btn-outline-primary mt-3">Return to Bookings</Link>
+      </div>
+    );
   }
+
+  const statusDetails = getStatusDetails(booking.status);
 
   return (
     <div className="container py-5">
-      <h1 className="text-center mb-4 display-5">Booking Details</h1>
+      <nav aria-label="breadcrumb" className="mb-4">
+        <ol className="breadcrumb">
 
-      {/* Horizontal Layout */}
+          <li className="breadcrumb-item active" aria-current="page">Booking {id.substring(0, 8)}...</li>
+        </ol>
+      </nav>
+
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h1 className="display-5 fw-bold mb-0">
+          <FontAwesomeIcon icon={faCar} className="me-3 text-primary" />
+          Booking Details
+        </h1>
+        <span className={`badge bg-${statusDetails.color} fs-6 px-3 py-2`}>
+          <FontAwesomeIcon icon={statusDetails.icon} className="me-2" />
+          {statusDetails.text}
+        </span>
+      </div>
+
+      {/* Grid Layout */}
       <div className="row g-4">
-        {/* Booking Details Card */}
-        <div className="col-12 col-md-6 col-lg-4">
-          <div className="card shadow-lg h-100">
-            <div className="card-body">
-              <h2 className="card-title h4 mb-3">{booking.name}</h2>
-              <p className="card-text">
-                <strong>Vehicle ID:</strong> {booking.vehicleId}
-              </p>
-              <p className="card-text">
-                <strong>User ID:</strong> {booking.userId}
-              </p>
-              <p className="card-text">
-                <strong>Pickup Date:</strong> {new Date(booking.pick_up_date).toLocaleDateString()}
-              </p>
-              <p className="card-text">
-                <strong>Return Date:</strong> {new Date(booking.return_date).toLocaleDateString()}
-              </p>
-              <p className="card-text">
-                <strong>Status:</strong> {booking.status}
-              </p>
-              <p className="card-text">
-                <strong>Total Price:</strong> ${booking.total_price}
-              </p>
-              <p className="card-text">
-                <strong>Additional Notes:</strong> {booking.additional_notes}
-              </p>
+        {/* Vehicle Details Section */}
+        <div className="col-12 col-lg-8">
+          <div className="card border-0 shadow-lg h-100 overflow-hidden">
+            <div className="position-relative">
+              <img
+                src={vehicle.image}
+                className="card-img-top"
+                alt={vehicle.vehicleName}
+                style={{ height: "350px", objectFit: "cover" }}
+              />
+              <div className="position-absolute bottom-0 start-0 bg-dark bg-opacity-75 text-white w-100 p-3">
+                <h2 className="h3 mb-0">{vehicle.vehicleName}</h2>
+                <p className="mb-0 small">{vehicle.brand} {vehicle.model} ({vehicle.year})</p>
+              </div>
+            </div>
+            <div className="card-body p-4">
+              <h3 className="h5 mb-4 text-primary">Vehicle Information</h3>
+              
+              <div className="row g-3">
+                <div className="col-md-6 col-lg-4">
+                  <div className="d-flex align-items-center">
+                    <div className="me-3 p-3 rounded-circle bg-light">
+                      <FontAwesomeIcon icon={faCar} className="text-primary" />
+                    </div>
+                    <div>
+                      <small className="text-muted d-block">Type</small>
+                      <strong>{vehicle.vehicleType}</strong>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="col-md-6 col-lg-4">
+                  <div className="d-flex align-items-center">
+                    <div className="me-3 p-3 rounded-circle bg-light">
+                      <FontAwesomeIcon icon={faGasPump} className="text-primary" />
+                    </div>
+                    <div>
+                      <small className="text-muted d-block">Fuel Type</small>
+                      <strong>{vehicle.fuelType}</strong>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="col-md-6 col-lg-4">
+                  <div className="d-flex align-items-center">
+                    <div className="me-3 p-3 rounded-circle bg-light">
+                      <FontAwesomeIcon icon={faUsers} className="text-primary" />
+                    </div>
+                    <div>
+                      <small className="text-muted d-block">Seating</small>
+                      <strong>{vehicle.seating} people</strong>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="col-md-6 col-lg-4">
+                  <div className="d-flex align-items-center">
+                    <div className="me-3 p-3 rounded-circle bg-light">
+                      <FontAwesomeIcon icon={faCogs} className="text-primary" />
+                    </div>
+                    <div>
+                      <small className="text-muted d-block">Transmission</small>
+                      <strong>{vehicle.transmission}</strong>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="col-md-6 col-lg-4">
+                  <div className="d-flex align-items-center">
+                    <div className="me-3 p-3 rounded-circle bg-light">
+                      <FontAwesomeIcon icon={faTags} className="text-primary" />
+                    </div>
+                    <div>
+                      <small className="text-muted d-block">Price/Day</small>
+                      <strong className="text-success">${vehicle.pricePerDay}</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <hr className="my-4" />
+              
+              <h4 className="h6 text-muted mb-2">Description</h4>
+              <p>{vehicle.description}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Booking Details Section */}
+        <div className="col-12 col-lg-4">
+          <div className="card border-0 shadow-lg h-100">
+            <div className="card-header bg-primary text-white py-3 border-0">
+              <h3 className="h5 mb-0">Reservation Information</h3>
+            </div>
+            <div className="card-body p-4">
+              <div className="mb-4">
+                <div className="d-flex align-items-center mb-3">
+                  <div className="me-3 p-3 rounded-circle bg-light">
+                    <FontAwesomeIcon icon={faUser} className="text-primary" />
+                  </div>
+                  <div>
+                    <small className="text-muted d-block">Booked By</small>
+                    <strong>{booking.name}</strong>
+                  </div>
+                </div>
+                
+                <div className="d-flex align-items-center mb-3">
+                  <div className="me-3 p-3 rounded-circle bg-light">
+                    <FontAwesomeIcon icon={faCalendarAlt} className="text-primary" />
+                  </div>
+                  <div>
+                    <small className="text-muted d-block">Pick-Up Date</small>
+                    <strong>{new Date(booking.pick_up_date).toLocaleDateString('en-US', {
+                      weekday: 'short',
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                    })}</strong>
+                  </div>
+                </div>
+                
+                <div className="d-flex align-items-center mb-3">
+                  <div className="me-3 p-3 rounded-circle bg-light">
+                    <FontAwesomeIcon icon={faCalendarAlt} className="text-danger" />
+                  </div>
+                  <div>
+                    <small className="text-muted d-block">Return Date</small>
+                    <strong>{new Date(booking.return_date).toLocaleDateString('en-US', {
+                      weekday: 'short',
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                    })}</strong>
+                  </div>
+                </div>
+                
+                <div className="d-flex align-items-center mb-3">
+                  <div className="me-3 p-3 rounded-circle bg-light">
+                    <FontAwesomeIcon icon={faMoneyBillWave} className="text-success" />
+                  </div>
+                  <div>
+                    <small className="text-muted d-block">Total Price</small>
+                    <strong className="text-success fs-4">${booking.total_price}</strong>
+                  </div>
+                </div>
+
+                {booking.additional_notes && (
+                  <div className="d-flex align-items-center">
+                    <div className="me-3 p-3 rounded-circle bg-light">
+                      <FontAwesomeIcon icon={faStickyNote} className="text-primary" />
+                    </div>
+                    <div>
+                      <small className="text-muted d-block">Additional Notes</small>
+                      <p className="mb-0">{booking.additional_notes}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
               {booking.status === "pending" && (
-                <>
+                <div className="d-grid gap-2 mt-4">
                   <button
-                    className="btn btn-danger mt-3 me-2"
-                    onClick={() => setShowCancelPopup(true)}
-                  >
-                    Cancel Booking
-                  </button>
-                  <button
-                    className="btn btn-primary mt-3"
+                    className="btn btn-outline-primary"
                     onClick={() => setShowUpdatePopup(true)}
                   >
+                    <FontAwesomeIcon icon={faEdit} className="me-2" />
                     Update Booking
                   </button>
-                </>
+                  <button
+                    className="btn btn-outline-danger"
+                    onClick={() => setShowCancelPopup(true)}
+                  >
+                    <FontAwesomeIcon icon={faBan} className="me-2" />
+                    Cancel Booking
+                  </button>
+                </div>
               )}
             </div>
           </div>
         </div>
 
         {/* Review Form Section */}
-        <div className="col-12 col-md-6 col-lg-4">
-          {booking.status === "completed" ? (
-            hasReview ? (
-              <div className="card shadow-lg h-100">
-                <div className="card-body text-center">
-                  <p className="text-success">You have already submitted a review for this booking.</p>
-                </div>
-              </div>
-            ) : (
-              <div className="card shadow-lg h-100">
-                <div className="card-body">
-                  <h3 className="card-title h5 mb-3">Submit a Review</h3>
+        <div className="col-12 col-md-6">
+          <div className="card border-0 shadow-lg h-100">
+            <div className="card-header bg-light py-3 border-0">
+              <h3 className="h5 mb-0">Submit a Review</h3>
+            </div>
+            <div className="card-body p-4">
+              {booking.status === "completed" ? (
+                hasReview ? (
+                  <div className="alert alert-success">
+                    <FontAwesomeIcon icon={faCheckCircle} className="me-2" />
+                    You have already submitted a review for this booking.
+                  </div>
+                ) : (
                   <ReviewForm
                     userId={booking.userId}
                     vehicleId={booking.vehicleId}
                     bookingId={booking._id}
                   />
-                </div>
-              </div>
-            )
-          ) : booking.status === "canceled" ? (
-            <div className="card shadow-lg h-100">
-              <div className="card-body text-center">
-                <p className="text-danger">
-                  Reviews cannot be submitted for canceled bookings.
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="card shadow-lg h-100">
-              <div className="card-body text-center">
-                <p className="text-muted">
+                )
+              ) : (
+                <div className="alert alert-info">
+                  <FontAwesomeIcon icon={faCalendarAlt} className="me-2" />
                   Reviews can only be submitted for completed bookings.
-                </p>
-              </div>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
 
         {/* My Reviews Section */}
-        <div className="col-12 col-md-6 col-lg-4">
-          <div className="card shadow-lg h-100">
-            <div className="card-body">
-              <h3 className="card-title h5 mb-3">My Reviews</h3>
+        <div className="col-12 col-md-6">
+          <div className="card border-0 shadow-lg h-100">
+            <div className="card-header bg-light py-3 border-0">
+              <h3 className="h5 mb-0">My Reviews</h3>
+            </div>
+            <div className="card-body p-4">
               <MyReviews bookingId={booking._id} />
             </div>
           </div>
@@ -160,40 +355,70 @@ const BookingDetail = () => {
       </div>
 
       {/* Cancel Booking Popup */}
-      {showCancelPopup && (
-        <div className="popup-overlay">
-          <div className="popup">
-            <h3 className="popup-title">Cancel Booking</h3>
+{showCancelPopup && (
+  <div className="position-fixed top-0 start-0 w-100 h-100" style={{ zIndex: 1050, backgroundColor: 'rgba(0,0,0,0.5)' }}>
+    <div className="modal d-block" tabIndex="-1">
+      <div className="modal-dialog modal-dialog-centered">
+        <div className="modal-content" style={{ backgroundColor: '#ffffff' }}>
+          <div className="modal-header bg-danger text-white" style={{ opacity: 1 }}>
+            <h5 className="modal-title">
+              <FontAwesomeIcon icon={faBan} className="me-2" />
+              Cancel Booking
+            </h5>
+            <button type="button" className="btn-close btn-close-white" onClick={() => setShowCancelPopup(false)}></button>
+          </div>
+          <div className="modal-body" style={{ backgroundColor: '#ffffff', opacity: 1 }}>
+            <p>Are you sure you want to cancel this booking? This action cannot be undone.</p>
             <textarea
               className="form-control mb-3"
-              placeholder="Enter cancellation reason"
+              placeholder="Please provide a reason for cancellation..."
               value={cancellationReason}
               onChange={(e) => setCancellationReason(e.target.value)}
               rows="3"
             ></textarea>
-            <button className="btn btn-danger me-2" onClick={handleCancelBooking}>
-              Confirm Cancel
-            </button>
+          </div>
+          <div className="modal-footer" style={{ backgroundColor: '#ffffff', opacity: 1 }}>
             <button className="btn btn-secondary" onClick={() => setShowCancelPopup(false)}>
               Close
             </button>
+            <button className="btn btn-danger" onClick={handleCancelBooking}>
+              Confirm Cancel
+            </button>
           </div>
         </div>
-      )}
+      </div>
+    </div>
+  </div>
+)}
 
       {/* Update Booking Popup */}
-      {showUpdatePopup && (
-        <div className="popup-overlay">
-          <div className="popup">
-            <h3 className="popup-title">Update Booking</h3>
+{showUpdatePopup && (
+  <div className="position-fixed top-0 start-0 w-100 h-100" style={{ zIndex: 1050, backgroundColor: 'rgba(0,0,0,0.5)' }}>
+    <div className="modal d-block" tabIndex="-1">
+      <div className="modal-dialog modal-dialog-centered modal-lg">
+        <div className="modal-content" style={{ backgroundColor: '#ffffff' }}>
+          <div className="modal-header bg-primary text-white" style={{ opacity: 1 }}>
+            <h5 className="modal-title">
+              <FontAwesomeIcon icon={faEdit} className="me-2" />
+              Update Booking
+            </h5>
+            <button type="button" className="btn-close btn-close-white" onClick={() => setShowUpdatePopup(false)}></button>
+          </div>
+          <div className="modal-body" style={{ backgroundColor: '#ffffff', opacity: 1 }}>
             <UpdateBookingForm
               booking={booking}
               onClose={() => setShowUpdatePopup(false)}
-              onUpdate={(updatedBooking) => setBooking(updatedBooking)}
+              onUpdate={(updatedBooking) => {
+                setBooking(updatedBooking);
+                setShowUpdatePopup(false);
+              }}
             />
           </div>
         </div>
-      )}
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 };

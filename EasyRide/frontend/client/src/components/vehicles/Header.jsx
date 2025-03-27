@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import NotificationIcon from "../Bookings/Ntification"; // Import the NotificationIcon component
 
 const Header = () => {
   return (
@@ -21,11 +22,15 @@ const Header = () => {
             <span className="navbar-toggler-icon"></span>
           </button>
           <div className="collapse navbar-collapse" id="navbarNav">
-            <ul className="navbar-nav ms-auto">
+            <ul className="navbar-nav ms-auto align-items-center">
               <li className="nav-item">
                 <Link className="nav-link" to="/vehicles">
                   Vehicles
                 </Link>
+              </li>
+              <li className="nav-item">
+                {/* Notification Icon */}
+                <NotificationIcon />
               </li>
             </ul>
           </div>

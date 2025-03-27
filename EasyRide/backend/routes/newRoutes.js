@@ -110,7 +110,7 @@ router.get("/allBookings", async (req, res) => {
   });
 
 // Create a notification
-// http://localhost:5000/api/createNotification
+// http://localhost:5000/api/booking/createNotification
 router.post("/createNotification", async (req, res) => {
   try {
     const { userId, message, type } = req.body;
@@ -339,5 +339,75 @@ router.delete("/delete/:bookingId", async (req, res) => {
   }
 });
 
+
+// http://localhost:5000/api/booking/delete/:notificationId
+// Route to delete a notification
+router.delete("/deleteNotify/:notificationId", async (req, res) => {
+  try {
+    const { notificationId } = req.params;
+
+    // Find and delete the notification by ID
+    const notification = await Notification.findByIdAndDelete(notificationId);
+
+    if (!notification) {
+      return res.status(404).json({ message: "Notification not found." });
+    }
+
+    res.status(200).json({ message: "Notification deleted successfully.", notification });
+  } catch (error) {
+    console.error("Error deleting notification:", error.message);
+    res.status(500).json({ message: "Failed to delete notification.", error: error.message });
+  }
+});
+
+// http://localhost:5000/api/booking/all
+// Route to fetch all notifications
+router.get("/all", async (req, res) => {
+  try {
+    const notifications = await Notification.find().sort({ createdAt: -1 }); // Fetch all notifications sorted by creation date (newest first)
+    res.status(200).json({ notifications });
+  } catch (error) {
+    console.error("Error fetching notifications:", error.message);
+    res.status(500).json({ message: "Failed to fetch notifications.", error: error.message });
+  }
+});
+
+// Route to fetch all reviews
+//http://localhost:5000/api/booking/allReviews
+router.get("/reviews", async (req, res) => {
+  try {
+    const reviews = await Review.find().sort({ createdAt: -1 }); // Fetch all reviews sorted by creation date (newest first)
+    res.status(200).json({ success: true, reviews });
+  } catch (error) {
+    console.error("Error fetching reviews:", error.message);
+    res.status(500).json({ success: false, message: "Failed to fetch reviews.", error: error.message });
+  }
+});
+
+//http://localhost:5000/api/booking/vehicle-details/:bookingId
+// Route to fetch vehicle details by vehicleId in the booking model
+// Route to fetch vehicle details by vehicleId in the booking model
+router.get("/vehicle-details/:bookingId", async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+
+    // Fetch the booking by its ID and populate the vehicle details
+    const booking = await Booking.findById(bookingId).populate("vehicleId");
+    if (!booking) {
+      return res.status(404).json({ success: false, message: "Booking not found" });
+    }
+
+    // The vehicle details are now populated in the booking object
+    const vehicle = booking.vehicleId;
+    if (!vehicle) {
+      return res.status(404).json({ success: false, message: "Vehicle not found" });
+    }
+
+    res.status(200).json({ success: true, vehicle });
+  } catch (error) {
+    console.error("Error fetching vehicle details:", error.message);
+    res.status(500).json({ success: false, message: "Internal Server Error", error: error.message });
+  }
+});
 
 export default router;

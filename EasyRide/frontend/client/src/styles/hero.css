@@ -1,0 +1,13 @@
+.hero-container {
+  background: url("https://source.unsplash.com/1600x900/?luxury-car") center/cover no-repeat;
+  height: 90vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hero-content {
+  background: rgba(0, 0, 139, 0.7); /* Dark blue overlay */
+  padding: 40px;
+  border-radius: 10px;
+}

@@ -32,7 +32,7 @@ const NotificationIcon = () => {
   const markAllAsRead = async () => {
     try {
       await axios.post(`http://localhost:5000/api/booking/notifications/mark-all-read/${userId}`);
-      setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+      setNotifications(notifications.map((n) => ({ ...n, isRead: true })));
     } catch (error) {
       console.error("Error marking notifications as read:", error);
     }
@@ -42,11 +42,27 @@ const NotificationIcon = () => {
   const markNotificationAsRead = async (notificationId) => {
     try {
       await axios.post(`http://localhost:5000/api/booking/notifications/mark-read/${notificationId}`);
-      setNotifications(notifications.map(n => 
-        n._id === notificationId ? { ...n, isRead: true } : n
-      ));
+      setNotifications(
+        notifications.map((n) =>
+          n._id === notificationId ? { ...n, isRead: true } : n
+        )
+      );
     } catch (error) {
       console.error("Error marking notification as read:", error);
+    }
+  };
+
+  // Delete a notification
+  const deleteNotification = async (notificationId) => {
+    if (window.confirm("Are you sure you want to delete this notification?")) {
+      try {
+        await axios.delete(`http://localhost:5000/api/booking/deleteNotify/${notificationId}`);
+        setNotifications(notifications.filter((n) => n._id !== notificationId));
+        alert("Notification deleted successfully.");
+      } catch (error) {
+        console.error("Error deleting notification:", error);
+        alert("Failed to delete notification. Please try again.");
+      }
     }
   };
 
@@ -72,26 +88,19 @@ const NotificationIcon = () => {
 
       {/* Notification Popup */}
       {showPopup && (
-        <div 
-          className="position-absolute bg-white shadow-lg rounded-3 border" 
-          style={{ 
-            width: "350px", 
-            right: 0, 
+        <div
+          className="position-absolute bg-white shadow-lg rounded-3 border"
+          style={{
+            width: "500px",
+            right: 0,
             zIndex: 1050,
-            maxHeight: "500px",
-            overflowY: "auto"
+            maxHeight: "700px",
+            overflowY: "auto",
           }}
         >
           <div className="d-flex justify-content-between align-items-center p-3 border-bottom">
             <h5 className="mb-0">Notifications</h5>
-            {unreadCount > 0 && (
-              <button 
-                className="btn btn-sm btn-outline-secondary"
-                onClick={markAllAsRead}
-              >
-                Mark all read
-              </button>
-            )}
+            
           </div>
 
           {isLoading ? (
@@ -115,14 +124,15 @@ const NotificationIcon = () => {
                     <div className="fw-bold">{notification.message}</div>
                     <small>{new Date(notification.createdAt).toLocaleString()}</small>
                   </div>
-                  {!notification.isRead && (
-                    <button 
-                      className="btn btn-sm btn-outline-success ms-2"
-                      onClick={() => markNotificationAsRead(notification._id)}
+                  <div>
+                    
+                    <button
+                      className="btn btn-sm btn-outline-danger ms-2"
+                      onClick={() => deleteNotification(notification._id)}
                     >
-                      <FontAwesomeIcon icon={faCheck} />
+                      <FontAwesomeIcon icon={faTimes} />
                     </button>
-                  )}
+                  </div>
                 </li>
               ))}
             </ul>

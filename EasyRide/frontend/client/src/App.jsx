@@ -11,6 +11,10 @@ import AdminBookings from './components/Admin/AdminBookings';
 import Vehicles from './components/vehicles/vehicles';
 import BookingForm from './components/Bookings/CreateBooking';
 import SpecificBooking from "./components/Admin/specificBooking";
+import AdminNotifications from './components/Admin/AdminNotification';
+import AdminReviews from './components/Admin/AdminReviews';
+import AdminVehicles from './pages/vehicle/AdminVehicles';
+import VehicleDetails from './pages/vehicle/vehicleDetailPage';
 function App() {
   const [count, setCount] = useState(0)
 
@@ -24,6 +28,10 @@ function App() {
      <Route path="/vehicles" element={<Vehicles />} />
      <Route path="/bookings/:vehicleId" element={<BookingForm />} />
      <Route path="/admin/bookings/:id" element={<SpecificBooking />} />
+      <Route path="/admin/notifications" element={<AdminNotifications />} />
+      <Route path="/admin/reviews" element={<AdminReviews />} />
+      <Route path="/vehicles/:id" element={<VehicleDetails />} /> {/* Add this route */}
+      <Route path="/admin/vehicles" element={<AdminVehicles />} />
     </Routes>
   </Router>
    
