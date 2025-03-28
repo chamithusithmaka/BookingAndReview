@@ -94,6 +94,14 @@ const SpecificBooking = () => {
     });
   };
 
+  // Calculate days between creation and cancellation
+  const calculateDaysBetween = (createdAt, canceledAt) => {
+    const createdDate = new Date(createdAt);
+    const canceledDate = new Date(canceledAt);
+    const differenceInTime = canceledDate - createdDate;
+    return Math.ceil(differenceInTime / (1000 * 60 * 60 * 24)); // Convert milliseconds to days
+  };
+
   if (loading) {
     return (
       <div className="d-flex flex-column justify-content-center align-items-center min-vh-100">
@@ -135,6 +143,11 @@ const SpecificBooking = () => {
           <FontAwesomeIcon icon={statusBadge.icon} className="me-2" />
           {statusBadge.text}
         </div>
+        {booking.status === "canceled" && booking.canceledAt && booking.createdAt && (
+            <div className="text-danger fw-bold" style={{marginLeft: "-400px", marginTop: "5px"}}>
+              Canceled after {calculateDaysBetween(booking.createdAt, booking.canceledAt)} day(s)
+            </div>
+          )}
       </div>
 
       <div className="row g-4">

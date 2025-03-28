@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import Navigation from "../vehicles/Navbar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { 
   faCalendarCheck, 
@@ -69,7 +70,7 @@ const Bookings = () => {
 
   return (
     <div className="bg-light min-vh-100">
-      <Header />
+      <Navigation />
       <div className="container py-5">
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div>

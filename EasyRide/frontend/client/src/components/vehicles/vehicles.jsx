@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom"; // Import useNavigate for navigation
-import Header from "./Header"; // Import the Header component
-
+import Navigation from "./Navbar";
 const Vehicles = () => {
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -46,7 +45,7 @@ const Vehicles = () => {
 
   return (
     <div>
-      <Header />
+      <Navigation />
       <div className="container py-5">
         <h1 className="text-center mb-4">Available Vehicles</h1>
         <div className="row g-4">

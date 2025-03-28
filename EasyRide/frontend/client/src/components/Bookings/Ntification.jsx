@@ -11,6 +11,10 @@ const NotificationIcon = () => {
   // Hardcoded userId for now
   const userId = "12345";
 
+// Uncomment the following line after implementing login functionality
+// const userId = localStorage.getItem("userId");
+
+
   // Fetch notifications
   useEffect(() => {
     const fetchNotifications = async () => {
