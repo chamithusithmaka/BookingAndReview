@@ -15,13 +15,7 @@ const Hero = () => {
         <div className="text-center p-5 bg-info text-white">
             <h1>Drive Your Freedom, Rent with Ease!</h1>
             <p>Find the perfect car for your journey</p>
-            <Button 
-                variant="warning" 
-                size="lg"
-                onClick={handleBookNowClick} // Add onClick event handler
-            >
-                Book Now
-            </Button>
+            
         </div>
     );
 };

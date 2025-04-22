@@ -17,6 +17,8 @@ import AdminVehicles from './pages/vehicle/AdminVehicles';
 import SummaryReport from './components/Admin/SummaryReport';
 import Home from './pages/vehicle/Home';
 import VehicleDetails from './pages/vehicle/vehicleDetailPage';
+import RefundForm from './components/Admin/RefundForm';
+import RefundManagement from './components/Admin/RefundManagement';
 function App() {
   const [count, setCount] = useState(0)
 
@@ -36,6 +38,8 @@ function App() {
       <Route path="/vehicles/:id" element={<VehicleDetails />} /> {/* Add this route */}
       <Route path="/admin/vehicles" element={<AdminVehicles />} />
       <Route path="/admin/report" element={<SummaryReport />} />
+      <Route path="/admin/refund/:bookingId" element={<RefundForm />} />
+      <Route path="/admin/refunds" element={<RefundManagement />} />
     </Routes>
   </Router>
    

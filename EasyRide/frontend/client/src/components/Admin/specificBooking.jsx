@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import CancelBookingForm from "./CancelBookingForm";
+import RefundBookingForm from "./RefundForm"; // Import RefundBookingForm
 import CreateNotificationForm from "./CreateNotificationForm";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -28,6 +29,8 @@ const SpecificBooking = () => {
   const [showCancelPopup, setShowCancelPopup] = useState(false);
   const [showNotificationPopup, setShowNotificationPopup] = useState(false);
   const [vehicleDetails, setVehicleDetails] = useState(null);
+  const [showRefundPopup, setShowRefundPopup] = useState(false);
+  const [refundDetails, setRefundDetails] = useState(null);
 
   // Fetch booking by ID
   useEffect(() => {
@@ -55,6 +58,28 @@ const SpecificBooking = () => {
 
     fetchBookingAndVehicle();
   }, [id]);
+
+  useEffect(() => {
+    const fetchRefundDetails = async () => {
+      try {
+        const response = await axios.get(`http://localhost:5000/api/refunds/booking/${booking._id}`);
+        setRefundDetails(response.data); // Set refund details directly
+      } catch (error) {
+        console.error("Error fetching refund details:", error);
+      }
+    };
+  
+    if (booking) {
+      fetchRefundDetails();
+    }
+  }, [booking]);
+
+  // Calculate total refunded amount
+  const totalRefunded = refundDetails
+    ? Array.isArray(refundDetails)
+      ? refundDetails.reduce((sum, refund) => sum + refund.refundAmount, 0)
+      : refundDetails.refundAmount
+    : 0;
 
   // Handle marking the booking as completed
   const handleCompleteBooking = async () => {
@@ -92,14 +117,6 @@ const SpecificBooking = () => {
       month: "short",
       day: "numeric"
     });
-  };
-
-  // Calculate days between creation and cancellation
-  const calculateDaysBetween = (createdAt, canceledAt) => {
-    const createdDate = new Date(createdAt);
-    const canceledDate = new Date(canceledAt);
-    const differenceInTime = canceledDate - createdDate;
-    return Math.ceil(differenceInTime / (1000 * 60 * 60 * 24)); // Convert milliseconds to days
   };
 
   if (loading) {
@@ -143,11 +160,6 @@ const SpecificBooking = () => {
           <FontAwesomeIcon icon={statusBadge.icon} className="me-2" />
           {statusBadge.text}
         </div>
-        {booking.status === "canceled" && booking.canceledAt && booking.createdAt && (
-            <div className="text-danger fw-bold" style={{marginLeft: "-400px", marginTop: "5px"}}>
-              Canceled after {calculateDaysBetween(booking.createdAt, booking.canceledAt)} day(s)
-            </div>
-          )}
       </div>
 
       <div className="row g-4">
@@ -258,51 +270,51 @@ const SpecificBooking = () => {
               )}
               
               {booking.status === "canceled" && (
-  <div className="mt-4 p-3 bg-light rounded-3 border-start border-danger border-4">
-    <h6 className="text-danger mb-2">
-      <FontAwesomeIcon icon={faBan} className="me-2" />
-      Cancellation Details
-    </h6>
-    <p className="mb-1">
-      <strong>Reason:</strong> {booking.cancellationReason || "No reason provided"}
-    </p>
-    {booking.canceledAt && (
-      <p className="mb-0">
-        <strong>Canceled on:</strong> {formatDate(booking.canceledAt)}
-      </p>
-    )}
-  </div>
-)}
+                  <div className="mt-4 p-3 bg-light rounded-3 border-start border-danger border-4">
+                    <h6 className="text-danger mb-2">
+                      <FontAwesomeIcon icon={faBan} className="me-2" />
+                      Cancellation Details
+                    </h6>
+                    <p className="mb-1">
+                      <strong>Reason:</strong> {booking.cancellationReason || "No reason provided"}
+                    </p>
+                    {booking.canceledAt && (
+                      <p className="mb-0">
+                        <strong>Canceled on:</strong> {formatDate(booking.canceledAt)}
+                      </p>
+                    )}
+                  </div>
+                )}
 
-{/* Booking Created Time Information */}
-<div className="mt-4 p-3 bg-light rounded-3 border-start border-primary border-4">
-  <h6 className="text-primary mb-2">
-    <FontAwesomeIcon icon={faCalendarAlt} className="me-2" />
-    Booking History
-  </h6>
-  {booking.createdAt && (
-    <p className="mb-1">
-      <strong>Created on:</strong> {formatDate(booking.createdAt)}
-      <span className="ms-2 text-muted">
-        ({new Date(booking.createdAt).toLocaleTimeString('en-US', { 
-          hour: '2-digit', 
-          minute: '2-digit'
-        })})
-      </span>
-    </p>
-  )}
-  {booking.updatedAt && booking.updatedAt !== booking.createdAt && (
-    <p className="mb-0">
-      <strong>Last updated:</strong> {formatDate(booking.updatedAt)}
-      <span className="ms-2 text-muted">
-        ({new Date(booking.updatedAt).toLocaleTimeString('en-US', { 
-          hour: '2-digit', 
-          minute: '2-digit'
-        })})
-      </span>
-    </p>
-  )}
-</div>
+                {/* Booking Created Time Information */}
+                <div className="mt-4 p-3 bg-light rounded-3 border-start border-primary border-4">
+                  <h6 className="text-primary mb-2">
+                    <FontAwesomeIcon icon={faCalendarAlt} className="me-2" />
+                    Booking History
+                  </h6>
+                  {booking.createdAt && (
+                    <p className="mb-1">
+                      <strong>Created on:</strong> {formatDate(booking.createdAt)}
+                      <span className="ms-2 text-muted">
+                        ({new Date(booking.createdAt).toLocaleTimeString('en-US', { 
+                          hour: '2-digit', 
+                          minute: '2-digit'
+                        })})
+                      </span>
+                    </p>
+                  )}
+                  {booking.updatedAt && booking.updatedAt !== booking.createdAt && (
+                    <p className="mb-0">
+                      <strong>Last updated:</strong> {formatDate(booking.updatedAt)}
+                      <span className="ms-2 text-muted">
+                        ({new Date(booking.updatedAt).toLocaleTimeString('en-US', { 
+                          hour: '2-digit', 
+                          minute: '2-digit'
+                        })})
+                      </span>
+                    </p>
+                  )}
+                </div>
 
               
               
@@ -353,7 +365,25 @@ const SpecificBooking = () => {
               <h3 className="h5 mb-0">Booking Actions</h3>
             </div>
             <div className="card-body p-4">
-              {booking.status === "pending" ? (
+              {booking.status === "canceled" ? (
+                <div className="d-grid gap-3">
+                  <button
+                    className="btn btn-outline-success btn-lg d-flex align-items-center justify-content-center"
+                    onClick={() => setShowRefundPopup(true)}
+                    disabled={totalRefunded >= booking.total_price} // Disable button if total refunded equals or exceeds total price
+                  >
+                    <FontAwesomeIcon icon={faMoneyBillWave} className="me-2" />
+                    Refund Booking
+                  </button>
+                  <button
+                    className="btn btn-outline-primary btn-lg d-flex align-items-center justify-content-center"
+                    onClick={() => setShowNotificationPopup(true)}
+                  >
+                    <FontAwesomeIcon icon={faBell} className="me-2" />
+                    Send Notification
+                  </button>
+                </div>
+              ) : booking.status === "pending" ? (
                 <div className="d-grid gap-3">
                   <button
                     className="btn btn-success btn-lg d-flex align-items-center justify-content-center"
@@ -369,20 +399,17 @@ const SpecificBooking = () => {
                     <FontAwesomeIcon icon={faBan} className="me-2" />
                     Cancel Booking
                   </button>
-                  <div className="border-top mt-2 pt-3">
-                    <button
-                      className="btn btn-outline-primary btn-lg d-flex align-items-center justify-content-center w-100"
-                      onClick={() => setShowNotificationPopup(true)}
-                    >
-                      <FontAwesomeIcon icon={faBell} className="me-2" />
-                      Send Notification
-                    </button>
-                  </div>
+                  <button
+                    className="btn btn-outline-primary btn-lg d-flex align-items-center justify-content-center"
+                    onClick={() => setShowNotificationPopup(true)}
+                  >
+                    <FontAwesomeIcon icon={faBell} className="me-2" />
+                    Send Notification
+                  </button>
                 </div>
               ) : (
                 <div className="d-grid gap-3">
                   <div className="alert alert-info mb-3">
-                    
                     This booking is {booking.status} and cannot be modified.
                   </div>
                   <button
@@ -420,83 +447,147 @@ const SpecificBooking = () => {
               </div>
             </div>
           )}
+
+          {/* Refund Details Card */}
+          {booking.status === "canceled" && refundDetails && (
+            <div className="card border-0 shadow-lg rounded-3 sticky-top mt-4" style={{ top: "20px" }}>
+              <div className="card-header bg-success text-white">
+                <h3 className="h5 mb-0">Refund Details</h3>
+              </div>
+              <div className="card-body p-4">
+                <p className="mb-2">
+                  <strong>Refund Amount:</strong> ${refundDetails.refundAmount}
+                </p>
+                {refundDetails.refundNote && (
+                  <p className="mb-2">
+                    <strong>Refund Note:</strong> {refundDetails.refundNote}
+                  </p>
+                )}
+                <p className="mb-0">
+                  <strong>Refund Date:</strong>{" "}
+                  {new Date(refundDetails.createdAt).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
       
-{/* Cancel Booking Modal */}
-{showCancelPopup && (
-  <div className="position-fixed top-0 start-0 w-100 h-100" style={{ zIndex: 1050, backgroundColor: 'rgba(0,0,0,0.5)' }}>
-    <div className="modal d-block" tabIndex="-1">
-      <div className="modal-dialog modal-dialog-centered shadow-lg">
-        <div className="modal-content" style={{ backgroundColor: '#ffffff' }}>
-          <div className="modal-header bg-danger text-white" style={{ opacity: 1 }}>
-            <h5 className="modal-title">
-              <FontAwesomeIcon icon={faBan} className="me-2" />
-              Cancel Booking
-            </h5>
-            <button 
-              type="button" 
-              className="btn-close btn-close-white" 
-              onClick={() => setShowCancelPopup(false)}
-            ></button>
-          </div>
-          <div className="modal-body" style={{ backgroundColor: '#ffffff', opacity: 1 }}>
-            <CancelBookingForm
-              bookingId={booking._id}
-              onClose={() => setShowCancelPopup(false)}
-              onCancel={(updatedBooking) => setBooking(updatedBooking)}
-            />
+      {/* Cancel Booking Modal */}
+      {showCancelPopup && (
+        <div className="position-fixed top-0 start-0 w-100 h-100" style={{ zIndex: 1050, backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal d-block" tabIndex="-1">
+            <div className="modal-dialog modal-dialog-centered shadow-lg">
+              <div className="modal-content" style={{ backgroundColor: '#ffffff' }}>
+                <div className="modal-header bg-danger text-white" style={{ opacity: 1 }}>
+                  <h5 className="modal-title">
+                    <FontAwesomeIcon icon={faBan} className="me-2" />
+                    Cancel Booking
+                  </h5>
+                  <button 
+                    type="button" 
+                    className="btn-close btn-close-white" 
+                    onClick={() => setShowCancelPopup(false)}
+                  ></button>
+                </div>
+                <div className="modal-body" style={{ backgroundColor: '#ffffff', opacity: 1 }}>
+                  <CancelBookingForm
+                    bookingId={booking._id}
+                    onClose={() => setShowCancelPopup(false)}
+                    onCancel={(updatedBooking) => setBooking(updatedBooking)}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-)}
+      )}
 
-{/* Create Notification Modal */}
-{showNotificationPopup && (
-  <>
-    {/* Dark overlay */}
-    <div 
-      className="position-fixed top-0 start-0 w-100 h-100" 
-      style={{ 
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        zIndex: 1040
-      }}
-      onClick={() => setShowNotificationPopup(false)}
-    ></div>
-    
-    {/* Modal dialog */}
-    <div className="modal d-block" style={{ zIndex: 1050 }} tabIndex="-1">
-      <div className="modal-dialog modal-dialog-centered shadow-lg">
-        <div className="modal-content" style={{ backgroundColor: '#ffffff', opacity: 1 }}>
-          <div className="modal-header bg-primary text-white" style={{ opacity: 1 }}>
-            <h5 className="modal-title">
-              <FontAwesomeIcon icon={faBell} className="me-2" />
-              Create Notification
-            </h5>
-            <button 
-              type="button" 
-              className="btn-close btn-close-white" 
-              onClick={() => setShowNotificationPopup(false)}
-            ></button>
+      {/* Create Notification Modal */}
+      {showNotificationPopup && (
+        <>
+          {/* Dark overlay */}
+          <div 
+            className="position-fixed top-0 start-0 w-100 h-100" 
+            style={{ 
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              zIndex: 1040
+            }}
+            onClick={() => setShowNotificationPopup(false)}
+          ></div>
+          
+          {/* Modal dialog */}
+          <div className="modal d-block" style={{ zIndex: 1050 }} tabIndex="-1">
+            <div className="modal-dialog modal-dialog-centered shadow-lg">
+              <div className="modal-content" style={{ backgroundColor: '#ffffff', opacity: 1 }}>
+                <div className="modal-header bg-primary text-white" style={{ opacity: 1 }}>
+                  <h5 className="modal-title">
+                    <FontAwesomeIcon icon={faBell} className="me-2" />
+                    Create Notification
+                  </h5>
+                  <button 
+                    type="button" 
+                    className="btn-close btn-close-white" 
+                    onClick={() => setShowNotificationPopup(false)}
+                  ></button>
+                </div>
+                <div className="modal-body p-4" style={{ backgroundColor: '#ffffff', opacity: 1 }}>
+                  <CreateNotificationForm
+                    userId={booking.userId}
+                    onClose={() => setShowNotificationPopup(false)}
+                    onNotificationCreated={(notification) => {
+                      console.log("Notification created:", notification);
+                      setShowNotificationPopup(false);
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="modal-body p-4" style={{ backgroundColor: '#ffffff', opacity: 1 }}>
-            <CreateNotificationForm
-              userId={booking.userId}
-              onClose={() => setShowNotificationPopup(false)}
-              onNotificationCreated={(notification) => {
-                console.log("Notification created:", notification);
-                setShowNotificationPopup(false);
-              }}
-            />
+        </>
+      )}
+
+      {/* Refund Booking Modal */}
+      {showRefundPopup && (
+        <div className="position-fixed top-0 start-0 w-100 h-100" style={{ zIndex: 1050, backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal d-block" tabIndex="-1">
+            <div className="modal-dialog modal-dialog-centered shadow-lg">
+              <div className="modal-content" style={{ backgroundColor: '#ffffff' }}>
+                <div className="modal-header bg-success text-white">
+                  <h5 className="modal-title">
+                    <FontAwesomeIcon icon={faMoneyBillWave} className="me-2" />
+                    Refund Booking
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close btn-close-white"
+                    onClick={() => setShowRefundPopup(false)}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <RefundBookingForm
+                    bookingId={booking._id} // Pass bookingId
+                    userId={booking.userId}
+                    userName={booking.name}
+                    totalPrice={booking.total_price}
+                    onClose={() => setShowRefundPopup(false)}
+                    onRefundCreated={(refund) => {
+                      console.log("Refund created:", refund);
+                      setRefundDetails(refund); // Update refund details after creation
+                      setShowRefundPopup(false);
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-  </>
-)}
+      )}
     </div>
   );
 };

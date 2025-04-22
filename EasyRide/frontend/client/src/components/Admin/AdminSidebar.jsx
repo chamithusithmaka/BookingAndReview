@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { FaClipboardList, FaCar, FaBell, FaStar } from "react-icons/fa";
+import { FaClipboardList, FaCar, FaBell, FaStar, FaMoneyBillWave } from "react-icons/fa"; // Import FaMoneyBillWave for Refunds icon
 
 const AdminSidebar = () => {
   const location = useLocation();
@@ -53,7 +53,6 @@ const AdminSidebar = () => {
             Reviews
           </Link>
         </li>
-
         <li className="nav-item mb-3">
           <Link
             to="/admin/report"
@@ -62,7 +61,19 @@ const AdminSidebar = () => {
             }`}
           >
             <FaCar className="me-2" />
-            Booking Report 
+            Booking Report
+          </Link>
+        </li>
+        {/* Refunds Button */}
+        <li className="nav-item mb-3">
+          <Link
+            to="/admin/refunds"
+            className={`nav-link d-flex align-items-center text-white ${
+              location.pathname === "/admin/refunds" ? "active bg-secondary" : ""
+            }`}
+          >
+            <FaMoneyBillWave className="me-2" />
+            Refunds
           </Link>
         </li>
       </ul>

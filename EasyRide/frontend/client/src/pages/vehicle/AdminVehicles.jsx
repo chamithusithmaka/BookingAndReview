@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { FaTrash, FaEdit, FaPlus } from "react-icons/fa";
+import { FaTrash, FaEdit, FaPlus, FaDownload, FaEnvelope } from "react-icons/fa";
 import AdminSidebar from "../../components/Admin/AdminSidebar";
+import { generateVehicleReport } from "../../components/Admin/vehicleReport"; // Import the report generation function
+import VehicleReportEmailDialog from "./emailDialogPopup"; // Import the email dialog component
 
 const AdminVehicles = () => {
   const [vehicles, setVehicles] = useState([]);
@@ -29,6 +31,7 @@ const AdminVehicles = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState(""); // State for search term
+  const [showEmailDialog, setShowEmailDialog] = useState(false); // State for email dialog
 
   // Fetch vehicles from API
   useEffect(() => {
@@ -140,13 +143,41 @@ const AdminVehicles = () => {
     }
   };
 
+  // Function to handle report generation
+  const handleGenerateReport = () => {
+    generateVehicleReport(vehicles);
+  };
+
   return (
     <div className="d-flex">
       <div className="vh-100 bg-dark text-white position-fixed" style={{ width: "250px" }}>
         <AdminSidebar />
       </div>
       <div className="container mt-5" style={{ marginLeft: "250px" }}>
-        <h2 className="text-center text-primary mb-4">🚗 Admin Panel - Manage Vehicles</h2>
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <h2 className="text-primary">🚗 Admin Panel - Manage Vehicles</h2>
+          <div>
+            <button 
+              className="btn btn-outline-primary me-2"
+              onClick={handleGenerateReport}
+            >
+              <FaDownload className="me-2" /> Download Report
+            </button>
+            <button 
+              className="btn btn-primary"
+              onClick={() => setShowEmailDialog(true)}
+            >
+              <FaEnvelope className="me-2" /> Email Report
+            </button>
+          </div>
+        </div>
+
+        {/* Email Report Dialog */}
+        <VehicleReportEmailDialog 
+          show={showEmailDialog} 
+          onHide={() => setShowEmailDialog(false)} 
+          vehicles={vehicles}
+        />
 
         {error && <div className="alert alert-danger">{error}</div>}
 

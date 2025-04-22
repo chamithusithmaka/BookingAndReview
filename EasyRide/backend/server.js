@@ -12,7 +12,8 @@ import cancelRoutes from "./routes/cancel.routes.js";
 import loginRoute from "./routes/login.js";
 import vehicleRoutes from './routes/vehicle.route.js'; 
 import NewRoutes from './routes/newRoutes.js';
-
+import refundRoutes from './routes/refundRoutes.js'; // Import the refund routes
+import emailRoutes from './routes/emailRoutes.js'; // Updated to ES module import
 dotenv.config();
 
 const app = express(); // Initialize the app
@@ -33,7 +34,8 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/reviews', reviewRoutes); 
 app.use("/api/cancel", cancelRoutes);
 app.use('/api/booking', NewRoutes);
-
+app.use('/api/refunds', refundRoutes); // Route for refunds
+app.use('/api/email', emailRoutes);
 // Default route
 app.get('/', (req, res) => {
   res.send('Welcome to the EasyRide API!');

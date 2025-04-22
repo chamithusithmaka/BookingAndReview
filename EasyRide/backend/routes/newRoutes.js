@@ -50,8 +50,8 @@ router.get("/completed/:userId", async (req, res) => {
   });
 
   // Create a review
-  //http://localhost:5000/api/booking/createReview
-router.post("/createReview", async (req, res) => {
+  // http://localhost:5000/api/booking/createReview
+  router.post("/createReview", async (req, res) => {
     try {
       const { userId, vehicleId, bookingId, rating, reviewText } = req.body;
   
@@ -61,10 +61,17 @@ router.post("/createReview", async (req, res) => {
         return res.status(400).json({ message: "Review can only be created for completed bookings." });
       }
   
+      // Check if a review already exists for this user and booking
+      const existingReview = await Review.findOne({ userId, bookingId });
+      if (existingReview) {
+        return res.status(400).json({ message: "You have already submitted a review for this booking." });
+      }
+  
       // Create the review
       const review = await Review.create({ userId, vehicleId, bookingId, rating, reviewText });
       res.status(201).json({ message: "Review created successfully.", review });
     } catch (error) {
+      console.error("Error creating review:", error.message);
       res.status(500).json({ message: "Failed to create review.", error: error.message });
     }
   });
